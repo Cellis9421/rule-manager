@@ -1,0 +1,24 @@
+{
+  "categories": {
+    "generic": {
+      "url": "https://github.com/Cellis9421/rules-generic.git",
+      "description": "Generic AI coding rules (standards, quality, analysis)"
+    },
+    "git": {
+      "url": "https://github.com/Cellis9421/rules-git.git",
+      "description": "Git workflow rules"
+    },
+    "react": {
+      "url": "https://github.com/Cellis9421/rules-react.git",
+      "description": "React and Next.js best practices"
+    },
+    "mui": {
+      "url": "https://github.com/Cellis9421/rules-mui.git",
+      "description": "Material UI guidelines"
+    },
+    "docs": {
+      "url": "https://github.com/Cellis9421/rules-docs.git",
+      "description": "Documentation and README standards"
+    }
+  }
+}
