@@ -33,14 +33,46 @@ function getExecOptions(options: ExecSyncOptions = {}): ExecSyncOptions {
 /**
  * Helper to run ruler apply using the bundled dependency
  */
-function runRulerApply() {
+async function runRulerApply() {
   console.log(chalk.blue('Applying rules with @intellectronica/ruler...'));
   try {
     // Run the ruler CLI script directly using node
     execSync(`node "${rulerPath}" apply`, getExecOptions());
+    
+    // Post-process for Cursor .mdc support
+    await postProcessCursorRules();
   } catch (e) {
     console.error(chalk.red('Error: Failed to apply rules with @intellectronica/ruler.'));
   }
+}
+
+/**
+ * Post-processes rules to support Cursor's .mdc format and directory structure
+ */
+async function postProcessCursorRules() {
+  const cursorRulesDir = '.cursor/rules';
+  await fs.ensureDir(cursorRulesDir);
+
+  const categories = await fs.readdir(RULER_DIR);
+  for (const category of categories) {
+    const categoryPath = path.join(RULER_DIR, category);
+    if (!(await fs.stat(categoryPath)).isDirectory()) continue;
+
+    const targetCategoryDir = path.join(cursorRulesDir, `(${category})`);
+    await fs.ensureDir(targetCategoryDir);
+
+    const files = await fs.readdir(categoryPath);
+    for (const file of files) {
+      if (file.endsWith('.mdc') || file.endsWith('.md')) {
+        const srcPath = path.join(categoryPath, file);
+        const destFile = file.endsWith('.md') ? file.replace('.md', '.mdc') : file;
+        const destPath = path.join(targetCategoryDir, destFile);
+        
+        await fs.copy(srcPath, destPath);
+      }
+    }
+  }
+  console.log(chalk.green('Post-processed rules for Cursor (.mdc structure).'));
 }
 
 const REGISTRY_PATH = path.join(__dirname, '../registry.json');
@@ -142,7 +174,7 @@ program
 
       console.log(chalk.green(`Successfully added ${category}.`));
       
-      runRulerApply();
+      await runRulerApply();
       
     } catch (error) {
       console.error(chalk.red(`Error adding category: ${error}`));
@@ -171,7 +203,7 @@ program
     }
 
     console.log(chalk.green('All categories synced.'));
-    runRulerApply();
+    await runRulerApply();
   });
 
 program.parse(process.argv);
