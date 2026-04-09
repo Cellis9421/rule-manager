@@ -18,7 +18,7 @@ function getExecOptions(options = {}) {
     const isWindows = os.platform() === 'win32';
     return {
         stdio: 'inherit',
-        shell: isWindows ? 'powershell.exe' : true,
+        shell: isWindows ? 'powershell.exe' : '/bin/sh',
         ...options
     };
 }
