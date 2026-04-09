@@ -115,7 +115,7 @@ program
       // Run ruler apply
       console.log(chalk.blue('Applying rules with @intellectronica/ruler...'));
       try {
-        execSync('npx @intellectronica/ruler apply', { stdio: 'inherit' });
+        execSync('npx @intellectronica/ruler apply', { stdio: 'inherit', shell: true });
       } catch (e) {
         console.warn(chalk.yellow('Note: ruler apply failed. Make sure @intellectronica/ruler is installed or run it manually.'));
       }
@@ -149,7 +149,7 @@ program
     console.log(chalk.green('All categories synced.'));
     console.log(chalk.blue('Applying rules with @intellectronica/ruler...'));
     try {
-      execSync('npx @intellectronica/ruler apply', { stdio: 'inherit' });
+      execSync('npx @intellectronica/ruler apply', { stdio: 'inherit', shell: true });
     } catch (e) {
       console.warn(chalk.yellow('Note: ruler apply failed.'));
     }
