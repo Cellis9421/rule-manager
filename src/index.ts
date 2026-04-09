@@ -2,9 +2,13 @@
 import { Command } from 'commander';
 import * as fs from 'fs-extra';
 import * as path from 'path';
+import { fileURLToPath } from 'url';
 import simpleGit from 'simple-git';
 import chalk from 'chalk';
 import { execSync } from 'child_process';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const program = new Command();
 const git = simpleGit();
