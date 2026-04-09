@@ -7,6 +7,9 @@ import simpleGit from 'simple-git';
 import chalk from 'chalk';
 import { execSync } from 'child_process';
 import os from 'os';
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const rulerPath = require.resolve('@intellectronica/ruler/dist/cli/index.js');
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const program = new Command();
@@ -21,6 +24,19 @@ function getExecOptions(options = {}) {
         shell: isWindows ? 'powershell.exe' : '/bin/sh',
         ...options
     };
+}
+/**
+ * Helper to run ruler apply using the bundled dependency
+ */
+function runRulerApply() {
+    console.log(chalk.blue('Applying rules with @intellectronica/ruler...'));
+    try {
+        // Run the ruler CLI script directly using node
+        execSync(`node "${rulerPath}" apply`, getExecOptions());
+    }
+    catch (e) {
+        console.error(chalk.red('Error: Failed to apply rules with @intellectronica/ruler.'));
+    }
 }
 const REGISTRY_PATH = path.join(__dirname, '../registry.json');
 const CONFIG_FILE = '.rulesrc.json';
@@ -102,14 +118,7 @@ program
             await saveProjectConfig(config);
         }
         console.log(chalk.green(`Successfully added ${category}.`));
-        // Run ruler apply
-        console.log(chalk.blue('Applying rules with @intellectronica/ruler...'));
-        try {
-            execSync('npx @intellectronica/ruler apply', getExecOptions());
-        }
-        catch (e) {
-            console.warn(chalk.yellow('Note: ruler apply failed. Make sure @intellectronica/ruler is installed or run it manually.'));
-        }
+        runRulerApply();
     }
     catch (error) {
         console.error(chalk.red(`Error adding category: ${error}`));
@@ -136,12 +145,6 @@ program
         }
     }
     console.log(chalk.green('All categories synced.'));
-    console.log(chalk.blue('Applying rules with @intellectronica/ruler...'));
-    try {
-        execSync('npx @intellectronica/ruler apply', getExecOptions());
-    }
-    catch (e) {
-        console.warn(chalk.yellow('Note: ruler apply failed.'));
-    }
+    runRulerApply();
 });
 program.parse(process.argv);
