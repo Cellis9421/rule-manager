@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "type": "module",
   "bin": {
-    "rule-manager": "./dist/index.js"
+    "rule-manager": "./dist/index.js",
+    "rulem": "./dist/index.js"
   },
   "scripts": {
     "build": "tsc",
