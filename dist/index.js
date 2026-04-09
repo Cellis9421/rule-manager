@@ -8,12 +8,27 @@ import chalk from 'chalk';
 import { execSync } from 'child_process';
 import os from 'os';
 import { createRequire } from 'module';
+import inquirer from 'inquirer';
 const require = createRequire(import.meta.url);
 const rulerPath = require.resolve('@intellectronica/ruler/dist/cli/index.js');
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const program = new Command();
 const git = simpleGit();
+const AVAILABLE_AGENTS = [
+    'cursor',
+    'windsurf',
+    'claude',
+    'copilot',
+    'aider',
+    'cline',
+    'roo',
+    'trae',
+    'warp',
+    'zed',
+    'amazonqcli',
+    'firebase'
+];
 /**
  * Helper to get cross-platform exec options
  */
@@ -29,12 +44,21 @@ function getExecOptions(options = {}) {
  * Helper to run ruler apply using the bundled dependency
  */
 async function runRulerApply() {
-    console.log(chalk.blue('Applying rules with @intellectronica/ruler...'));
+    const config = await getProjectConfig();
+    const agents = config.agents || [];
+    if (agents.length === 0) {
+        console.log(chalk.yellow('No agents configured. Run "rule-manager target" to select agents.'));
+        return;
+    }
+    console.log(chalk.blue(`Applying rules with @intellectronica/ruler for agents: ${agents.join(', ')}...`));
     try {
-        // Run the ruler CLI script directly using node
-        execSync(`node "${rulerPath}" apply`, getExecOptions());
-        // Post-process for Cursor .mdc support
-        await postProcessCursorRules();
+        // Run the ruler CLI script directly using node with --agents flag
+        const agentsFlag = `--agents ${agents.join(',')}`;
+        execSync(`node "${rulerPath}" apply ${agentsFlag}`, getExecOptions());
+        // Post-process for Cursor .mdc support if cursor is in agents
+        if (agents.includes('cursor')) {
+            await postProcessCursorRules();
+        }
     }
     catch (e) {
         console.error(chalk.red('Error: Failed to apply rules with @intellectronica/ruler.'));
@@ -89,8 +113,8 @@ program
     .description('Initialize rule-manager in the current project')
     .action(async () => {
     if (!(await fs.pathExists(CONFIG_FILE))) {
-        await saveProjectConfig({ categories: [] });
-        console.log(chalk.green('Initialized .rulesrc.json'));
+        await saveProjectConfig({ categories: [], agents: ['cursor'] });
+        console.log(chalk.green('Initialized .rulesrc.json with default agent: cursor'));
     }
     else {
         console.log(chalk.yellow('Project already initialized.'));
@@ -98,6 +122,29 @@ program
     if (!(await fs.pathExists(RULER_DIR))) {
         await fs.ensureDir(RULER_DIR);
         console.log(chalk.green('Created .ruler directory'));
+    }
+});
+program
+    .command('target')
+    .description('Configure target AI agents for rule distribution')
+    .action(async () => {
+    const config = await getProjectConfig();
+    const { agents } = await inquirer.prompt([
+        {
+            type: 'checkbox',
+            name: 'agents',
+            message: 'Select AI agents to target:',
+            choices: AVAILABLE_AGENTS.map(agent => ({
+                name: agent,
+                checked: (config.agents || []).includes(agent)
+            }))
+        }
+    ]);
+    config.agents = agents;
+    await saveProjectConfig(config);
+    console.log(chalk.green(`Target agents updated: ${agents.join(', ')}`));
+    if (agents.length > 0) {
+        await runRulerApply();
     }
 });
 program
