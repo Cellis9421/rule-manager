@@ -5,13 +5,26 @@ import * as path from 'path';
 import { fileURLToPath } from 'url';
 import simpleGit from 'simple-git';
 import chalk from 'chalk';
-import { execSync } from 'child_process';
+import { execSync, ExecSyncOptions } from 'child_process';
+import os from 'os';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const program = new Command();
 const git = simpleGit();
+
+/**
+ * Helper to get cross-platform exec options
+ */
+function getExecOptions(options: ExecSyncOptions = {}): ExecSyncOptions {
+  const isWindows = os.platform() === 'win32';
+  return {
+    stdio: 'inherit',
+    shell: isWindows ? 'powershell.exe' : true,
+    ...options
+  };
+}
 
 const REGISTRY_PATH = path.join(__dirname, '../registry.json');
 const CONFIG_FILE = '.rulesrc.json';
@@ -115,7 +128,7 @@ program
       // Run ruler apply
       console.log(chalk.blue('Applying rules with @intellectronica/ruler...'));
       try {
-        execSync('npx @intellectronica/ruler apply', { stdio: 'inherit', shell: true });
+        execSync('npx @intellectronica/ruler apply', getExecOptions());
       } catch (e) {
         console.warn(chalk.yellow('Note: ruler apply failed. Make sure @intellectronica/ruler is installed or run it manually.'));
       }
@@ -149,7 +162,7 @@ program
     console.log(chalk.green('All categories synced.'));
     console.log(chalk.blue('Applying rules with @intellectronica/ruler...'));
     try {
-      execSync('npx @intellectronica/ruler apply', { stdio: 'inherit', shell: true });
+      execSync('npx @intellectronica/ruler apply', getExecOptions());
     } catch (e) {
       console.warn(chalk.yellow('Note: ruler apply failed.'));
     }
